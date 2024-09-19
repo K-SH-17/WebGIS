@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Traverse Computation</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0;">
+        <style>
+            .bton {
+                color: red;
+                background-color: aqua;
+                font-family: serif;
+                font-size: 20px;
+                border-radius: 8px;
+            }
+            .bton:hover {
+                color: yellow;
+                background-color: red;
+                font-family: serif;
+                font-size: 20px;
+                border-radius: 8px;
+                transform: scale(1.1); /* Enlarges the button by 10% */
+                transition: transform 0.2s ease; /* Smooth transition */
+            }
+        </style>
+    </head>
+    <body style="background-color:#E3F2FD;">
+
+        <h1 style="color:black;text-align:center;border:3px solid black;background-color:lightcoral" onmouseenter="this.style.color='yellow';" onmouseleave="this.style.color='black';" onclick="this.innerHTML='HAPPY COMPUTING!!!';">Traverse Computation Form</h1>
+        <form>
+            <label for="tname" style="font-size:20px;">Choose your loop:</label>
+            <select name="tname" id="tname" style="font-size:20px;">
+                <option value="Anti-clockwise" style="font-size:20px;">Anti-clockwise</option>
+                <option value="Clockwise" style="font-size:20px;">Clockwise</option>
+            </select>
+            <button type="button" onclick="chooseNumber()" class="bton">Submit</button>
+        </form>
+
+        <form style="display:none;" id="11">
+            <label for="sname" style="font-size:20px;">Enter number of unknown stations including known station falling on the loop:</label>
+            <input type="number" name="sname" id="2" style="font-size:20px;" required>
+            <button class="bton" type="button" id="b1" style="margin-left:0px" onclick="enterCoord()" required>Submit</button>
+        </form>
+
+        <div style="display:none;" id="d1">
+            Enter E1: <input type="number" id="i1" style="font-size:20px;" placeholder="XXXXXX" required>
+            Enter N1: <input type="number" id="i2" style="font-size:20px;" placeholder="XXXXXXX" required>
+            Enter E2: <input type="number" id="i3" style="font-size:20px;" placeholder="XXXXXX" required>
+            Enter N2: <input type="number" id="i4" style="font-size:20px;" placeholder="XXXXXXX" required>
+            <button type="button" class="bton" onclick="getBearing()" required>Submit</button>
+            
+        </div>
+
+        <div style="display:none;" id="div1">
+            <p id="iii" style="font-size:20px;"></p>
+        </div>
+
+        <div id="div22"	></div>
+            <button style="display:none;margin-left:0px;margin-top:20px" id="b33" type="button" class="bton" onclick="generateFields()" required>Enter Angles</button>
+        </div>
+
+        <div id="angleFields" style="display:none;">
+            <!-- Place for angle inputs -->
+        </div>
+
+        <div id="distanceFields" style="display:none;"></div>
+        <div id="showBearings" style="display:none;"></div>
+        <div id="showLatitudes" style="display:none;"></div>
+        <div id="showDepartures" style="display:none;"></div>
+        <div id="showCorrected" style="display:none;"></div>
+        <script>
+            function chooseNumber() {
+                document.getElementById("11").style.display = "block";
+                
+            }
+
+            function enterCoord() {
+                const numStations = parseInt(document.getElementById("2").value);
+                if (!numStations || numStations <= 0) {
+                    alert("Please Enter a Valid Number of Stations.");
+                    return;
+                }
+                document.getElementById("d1").style.display = "block";
+            }
+
+            function getBearing() {
+                
+                document.getElementById("div1").style.display = "block";
+                const e1 = parseFloat(document.getElementById('i1').value);
+                const n1 = parseFloat(document.getElementById('i2').value);
+                const e2 = parseFloat(document.getElementById('i3').value);
+                const n2 = parseFloat(document.getElementById('i4').value);
+                if (!e1 || !n1 || !e2 || !n2 || isNaN(e1) || isNaN(n1) || isNaN(e2) || isNaN(n2) || e1 <= 0 || n1 <= 0 || e2 <= 0 || n2 <= 0) {
+                    alert("Please Enter Valid Known Coordinate Values.");
+                    return;
+                }
+                const deltaE = e2 - e1;
+                const deltaN = n2 - n1;
+                const angleRadians = Math.atan(deltaE / deltaN);
+                const angleDegrees = angleRadians * (180 / Math.PI);
+                const angleGradians = angleDegrees * (200 / 180);
+                const rounded = angleGradians.toFixed(4);
+                document.getElementById("iii").innerHTML = "The Bearing of Traverse Leg Joining RO and Known Station 1 is: " + rounded + " gradians";
+                
+                if (!(!e1 || !n1 || !e2 || !n2 || isNaN(e1) || isNaN(n1) || isNaN(e2) || isNaN(n2) || e1 <= 0 || n1 <= 0 || e2 <= 0 || n2 <= 0))
+                {
+                    document.getElementById("b33").style.display = "block";
+                }
+            }
+
+            function generateFields() {
+                const numStations = parseInt(document.getElementById("2").value);
+                const direction = document.getElementById('tname').value;
+                const angleFieldsDiv = document.getElementById('angleFields');
+                angleFieldsDiv.innerHTML = '';
+                angleFieldsDiv.style.display = "block";
+            
+                // Special case for Station 1 (two angle inputs)
+                angleFieldsDiv.innerHTML += `<label style="font-size:20px;">Enter Corrected Angle 1 at Station 1 (Known station of the loop):</label> 
+                                            <input type="number" id="a1" style="font-size:20px;" required><br>`;
+                angleFieldsDiv.innerHTML += `<label style="font-size:20px;">Enter Corrected Angle 2 at Station 1 (Known station of the loop):</label> 
+                                            <input type="number" id="a2" style="font-size:20px;" required><br>`;
+            
+                // Loop through the remaining stations
+                for (let i = 2; i <= numStations; i++) {
+                    const label = document.createElement('label');
+                    label.style.fontSize = '20px';
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.step = '0.01';
+                    input.style.fontSize = '20px';
+                    input.required = true;
+                    input.id = `angle${i}`; // Assign ID to each input element
+                    if (direction === 'Clockwise') {
+                        label.textContent = `Exterior Corrected Angle at Station ${i}: `;
+                    } else if (direction === 'Anti-clockwise') {
+                        label.textContent = `Interior Corrected Angle at Station ${i}: `;
+                    }
+            
+                    angleFieldsDiv.appendChild(label);
+                    angleFieldsDiv.appendChild(input);
+                    angleFieldsDiv.appendChild(document.createElement('br'));
+                }
+            
+                const submitButton = document.createElement('button');
+                submitButton.type = 'button';
+                submitButton.className = 'bton';
+                submitButton.style.marginTop = '10px';
+                submitButton.textContent = 'Submit Angles';
+                
+                submitButton.onclick = function() {
+                    let validAngles = true;
+            
+                    // Check all angle fields for validity
+                    for (let i = 1; i <= numStations; i++) {
+                        const angleInput = document.getElementById(i === 1 ? `a${i}` : `angle${i}`);
+                        const angleValue = parseFloat(angleInput.value);
+                        
+                        if (isNaN(angleValue) || angleValue <= 0) {
+                            validAngles = false;
+                            break;
+                        }
+                    }
+            
+                    if (!validAngles) {
+                        alert('Please Enter Valid Values of Angles.');
+                        return;
+                    }
+            
+                    alert('Angles Submitted Successfully!');
+                    const distanceFieldsDiv = document.getElementById('distanceFields');
+                    distanceFieldsDiv.innerHTML = '';
+                    distanceFieldsDiv.style.display = "block";
+                    
+                    // Create distance fields
+                    for (let i = 1; i <= numStations; i++) {
+                        const label = document.createElement('label');
+                        label.style.fontSize = '20px';
+                        const input = document.createElement('input');
+                        input.type = 'number';
+                        input.step = '0.01';
+                        input.style.fontSize = '20px';
+                        input.id = `distance${i}`; // Assign ID to each input element
+                        input.required = true;
+                        label.textContent = `Length of Traverse Leg ${i}: `;
+                        distanceFieldsDiv.appendChild(label);
+                        distanceFieldsDiv.appendChild(input);
+                        distanceFieldsDiv.appendChild(document.createElement('br'));
+                    }
+            
+                    const submitButton1 = document.createElement('button');
+                    submitButton1.type = 'button';
+                    submitButton1.className = 'bton';
+                    submitButton1.style.marginTop = '10px';
+                    submitButton1.textContent = 'Submit Distances';
+                    distanceFieldsDiv.appendChild(submitButton1);
+                    
+                    submitButton1.onclick = function() {
+                        let validDistances = true;
+            
+                        // Check all distance fields for validity
+                        for (let i = 1; i <= numStations; i++) {
+                            const distanceInput = document.getElementById(`distance${i}`);
+                            const distanceValue = parseFloat(distanceInput.value);
+                            
+                            if (isNaN(distanceValue) || distanceValue <= 0) {
+                                validDistances = false;
+                                break;
+                            }
+                        }
+            
+                        if (!validDistances) {
+                            alert('Please Enter Valid Values of Traverse Leg Lengths.');
+                            return;
+                        }
+            
+                        alert('Lengths Entered Successfully!');
+                        bearingComputer();
+                    };
+                };
+            
+                angleFieldsDiv.appendChild(submitButton);
+            }
+
+            function bearingComputer() {
+                const numStations = parseInt(document.getElementById("2").value);
+                const direction = document.getElementById('tname').value;
+                const showBearingsDiv = document.getElementById('showBearings');
+                const initialBearing = parseFloat(document.getElementById('iii').innerText.split(':')[1]);
+                const angle2 = parseFloat(document.getElementById('a2').value);
+                showBearingsDiv.innerHTML = '';
+                showBearingsDiv.style.display = "block";
+                showBearingsDiv.style.fontSize="20px";
+                let currentBearing = initialBearing;
+                let correctedAngle;
+                for (let i = 1; i <= numStations; i++) {
+                    
+                    if (i === 1) {
+                        correctedAngle = angle2;
+                    } else {
+                        correctedAngle = parseFloat(document.getElementById(`angle${i}`).value); // Adjust this selector as needed
+                    }
+
+                    if (direction === 'Clockwise') {
+                        currentBearing += correctedAngle;
+                        if (currentBearing >= 600) {
+                            currentBearing -= 600;
+                        }
+                        else if (currentBearing >= 200 && currentBearing < 600) {
+                            currentBearing -= 200;
+                        }
+                        else if (currentBearing < 200) {
+                            currentBearing += 200;
+                        }
+                    } else if (direction === 'Anti-clockwise') {
+                        currentBearing -= correctedAngle;
+                        if (currentBearing < 0) {
+                            currentBearing += 400;
+                        }
+                    }
+
+                    showBearingsDiv.innerHTML += `<div id="bearing${i}">The Bearing of Traverse Leg ${i} is: ${currentBearing.toFixed(4)} gradians.<br></div>`;
+                }
+                const submitButton3 = document.createElement('button');
+                submitButton3.type = 'button';
+                submitButton3.className = 'bton';
+                submitButton3.style.marginTop = '10px';
+                submitButton3.textContent = 'Calculate ΔE and ΔN';
+                showBearingsDiv.appendChild(submitButton3);
+                submitButton3.onclick = function(){
+                    alert('Bearings calculated successfully!');
+                    alert('Now, Latitude(ΔN) and Departure(ΔE) will be calculated.');
+                    neCalculator();
+                }
+            }
+            function neCalculator() {    
+                const showLatitudes = document.getElementById('showLatitudes');
+                const showDepartures = document.getElementById('showDepartures');
+                showLatitudes.style.display = "block";
+                showDepartures.style.display = "block";
+                const numStations = parseInt(document.getElementById("2").value);
+                showLatitudes.innerHTML = '';
+                showDepartures.innerHTML = ''; 
+            
+                showLatitudes.style.fontSize = "20px";
+                showDepartures.style.fontSize = "20px";
+            
+                for (let i = 1; i <= numStations; i++) {
+                    const distance = parseFloat(document.getElementById(`distance${i}`).value);
+                    const bearing = parseFloat(document.getElementById(`bearing${i}`).innerText.split(':')[1]);
+            
+                    // Convert bearing from gradians to radians
+                    const bearingRadians = bearing * (Math.PI / 200);
+            
+                    // Calculate Latitude (ΔN) and Departure (ΔE)
+                    const latitude = distance * Math.cos(bearingRadians);
+                    const departure = distance * Math.sin(bearingRadians);
+            
+                    // Display Latitude and Departure
+                    showLatitudes.innerHTML += `<div id="latitude${i}">The Latitude (ΔN) of Traverse Leg ${i} is: ${latitude.toFixed(4)}.<br></div>`;
+                    showDepartures.innerHTML += `<div id="departure${i}">The Departure (ΔE) of Traverse Leg ${i} is: ${departure.toFixed(4)}.<br></div>`;
+                }
+                const submitButton4 = document.createElement('button');
+                submitButton4.type = 'button';
+                submitButton4.className = 'bton';
+                submitButton4.style.marginTop = '10px';
+                submitButton4.textContent = 'Get Corrected Values of ΔE and ΔN';
+                showDepartures.appendChild(submitButton4);
+                submitButton4.onclick = function(){
+                    alert("Corrected ΔE and ΔN Will Now Be Computed Successfully.");
+                    neCorrectedCalculator();
+                }
+            }
+            function neCorrectedCalculator(){
+                const numStations = parseInt(document.getElementById("2").value);
+                const showCorrectedDiv = document.getElementById('showCorrected');
+                showCorrectedDiv.innerHTML = '';
+                showCorrectedDiv.style.display = "block";
+                showCorrectedDiv.style.fontSize = "20px";
+                let sumLat = 0;
+                let sumDepart = 0;
+                let sumLength = 0;
+                for (let i = 1; i <= numStations; i++) {
+                    const latitude = parseFloat(document.getElementById(`latitude${i}`).innerText.split(':')[1].trim());
+                    const departure = parseFloat(document.getElementById(`departure${i}`).innerText.split(':')[1].trim());
+                    sumLat += latitude;
+                    sumDepart += departure;
+                    const length = parseFloat(document.getElementById(`distance${i}`).value);
+                    sumLength += length;
+                }
+                let latError = -sumLat;
+                let depError = -sumDepart;
+                for (let i = 1; i <= numStations; i++) {
+                    const latitude = parseFloat(document.getElementById(`latitude${i}`).innerText.split(':')[1].trim());
+                    const departure = parseFloat(document.getElementById(`departure${i}`).innerText.split(':')[1].trim());
+                    const length = parseFloat(document.getElementById(`distance${i}`).value);
+                    const latCorr = (latError)*(length)/(sumLength);
+                    const depCorr = (depError)*(length)/(sumLength);
+                    const actualLat = latitude+latCorr;
+                    const actualDep = departure+depCorr;
+                    showCorrectedDiv.innerHTML += `<div id="correctedLat${i}">The Corrected Latitude (ΔN) of Traverse Leg ${i} is: ${actualLat.toFixed(4)}.<br></div>`;
+                    showCorrectedDiv.innerHTML += `<div id="correctedDep${i}">The Corrected Departure (ΔE) of Traverse Leg ${i} is: ${actualDep.toFixed(4)}.<br></div>`;
+                }
+                const submitButton5 = document.createElement('button');
+                submitButton5.type = 'button';
+                submitButton5.className = 'bton';
+                submitButton5.style.marginTop = '10px';
+                submitButton5.textContent = 'Generate Table of Coordinates of Unknown Stations';
+                showCorrectedDiv.appendChild(submitButton5);
+                submitButton5.onclick = function(){
+
+                    alert('A table will be generated now.');
+                    generateTable();
+                }
+
+            }
+            
+            function generateTable() {
+                const numStations = parseInt(document.getElementById("2").value); // Total number of stations
+                const tableDiv = document.createElement('div'); // Container for the table
+                tableDiv.innerHTML = ''; // Clear any previous content
+                const table = document.createElement('table');
+                table.style.fontSize = "20px";
+                table.border = "1";
+                table.style.borderColor = "darkmaroon";
+                table.style.borderStyle = "double";
+                // Create the table headers
+                const headerRow = table.insertRow();
+                const controlHeader = headerRow.insertCell();
+                const eastingHeader = headerRow.insertCell();
+                const northingHeader = headerRow.insertCell();
+                controlHeader.innerHTML = "<b>Control Stations</b>";
+                eastingHeader.innerHTML = "<b>Easting (m)</b>";
+                northingHeader.innerHTML = "<b>Northing (m)</b>";
+                controlHeader.style.backgroundColor = "lightgreen";
+                eastingHeader.style.backgroundColor = "lightgreen";
+                northingHeader.style.backgroundColor = "lightgreen";
+                // Get initial known coordinates (E1, N1)
+                let eastingPrev = parseFloat(document.getElementById('i3').value); // E1
+                let northingPrev = parseFloat(document.getElementById('i4').value); // N1
+            
+                // Loop through the unknown stations to calculate their coordinates
+                for (let i = 1; i <= numStations; i++) {
+                    const row = table.insertRow(); // Create a new row
+                    const controlCell = row.insertCell();
+                    const eastingCell = row.insertCell();
+                    const northingCell = row.insertCell();
+                    if(i < numStations)
+                    {
+                        controlCell.innerHTML = `Station ${i+1}`; // Station numbering (from Station 2 onwards)
+            
+                        // Get corrected ΔE and ΔN for the current leg
+                        const correctedLat = parseFloat(document.getElementById(`correctedLat${i}`).innerText.split(':')[1].trim());
+                        const correctedDep = parseFloat(document.getElementById(`correctedDep${i}`).innerText.split(':')[1].trim());
+            
+                     // Calculate the new Easting and Northing
+                        const eastingNew = eastingPrev + correctedDep;
+                        const northingNew = northingPrev + correctedLat;
+            
+                        // Update table cells with calculated coordinates
+                        eastingCell.innerHTML = eastingNew.toFixed(4);
+                        northingCell.innerHTML = northingNew.toFixed(4);
+            
+                    // Update previous station coordinates for the next iteration
+                        eastingPrev = eastingNew;
+                        northingPrev = northingNew;
+                    }
+                    else{
+                        break;
+                    }
+                }
+            
+                // Add the table to the page
+                tableDiv.appendChild(table);
+                document.body.appendChild(tableDiv);
+            }
+            
+            
+        </script>
+    </body>
+</html>
